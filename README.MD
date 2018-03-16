@@ -28,10 +28,10 @@ function* cssparsec(){
   }
 }
 
-parse(many1(cssparser),```
+parse(many1(cssparser),`
 .hello {
   width: 100px;
   height: 100px;
 }
-```) -> [{title:'.hello',props:{width:"100px",height:"100px"}}]
+`) -> [{title:'.hello',props:{width:"100px",height:"100px"}}]
 ```

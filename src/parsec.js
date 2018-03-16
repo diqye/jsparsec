@@ -151,7 +151,7 @@ let many = parser => ctx => {
 
 }
 function* many1(parser){
-  let rs = many(parser)
+  let rs = yield many(parser)
   if(rs.length == 0){
     return yield parser
   } else {

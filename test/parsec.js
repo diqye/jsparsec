@@ -60,6 +60,47 @@ let testspecObj = {
     console.assert(r7.type == 'error')
     let r8 = parse(many1p,"hhh000")
     console.assert(r8.join('') === 'hhh')
+  },
+  "<anys> testing" () {
+    function* diqyeOrDIQYE(){
+      return yield anys([string('diqye'),string('DIQYE')])
+    }
+    let r = parse(diqyeOrDIQYE,'diqye')
+    console.assert(r === 'diqye')
+    let r1 = parse(diqyeOrDIQYE,'DIQYE')
+    console.assert(r1 === 'DIQYE')
+    let err = parse(diqyeOrDIQYE,'ho')
+    console.assert(err.type === 'error')
+  },
+  "<spaces> testing" () {
+    function* ytest(){
+      yield spaces
+      yield string('who am i')
+      return true
+    }
+    let r = parse(ytest,'who am i')
+    console.assert(r === true)
+    let r1 = parse(ytest,`
+         
+      who am i`)
+    console.assert(r === true)
+  },
+  "<lookAhead> testing" () {
+    function* lookAheadTest(){
+      let a = yield lookAhead(string('hello'))
+      let b = yield string('hello')
+      return a + b
+    }
+    let r = parse(lookAheadTest,'hello')
+    console.assert(r === 'hellohello')
+  },
+  "<manyTill>" () {
+    function* mt(){
+      let a = yield manyTill(anyChar)(string(' end'))
+      return a.join('')
+    }
+    let r = parse(mt,'ni hao end')
+    console.assert(r==='ni hao')
   }
 }
 function test() {

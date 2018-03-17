@@ -1,11 +1,18 @@
 /*
  * 暂不做模块化 
  */
+// a -> Bool
 function isGeneratorFunction(a){return Object.prototype.toString.call(a) == "[object GeneratorFunction]"}
+// a -> Bool
 function isGenerator(a){return Object.prototype.toString.call(a) == "[object Generator]"}
+// a -> Bool
 function isFunction(a){return Object.prototype.toString.call(a) == "[object Function]"}
+// a -> Bool
 function isArray(a){return Array.isArray(a)}
-// function 约定 ctx -> (str,ctx) | error
+
+// Parsec a = ctx -> (a,ctx)
+// ctx -> Generator a -> a
+// ctx -> Parsec a -> a
 function withContext(context) {
   let isEnd = false
   function runYieldSync(ge,val={done:false,value:undefined}){
@@ -74,11 +81,13 @@ function createError(context,expect,actual){
   }
 }
 
+// (Parsec a,String) -> a
 function parse(parsec,source){
   let runP = withContext(createParsecContext(source))
   return runP(parsec)
 }
 
+// Parsec a
 function anyChar(context) {
   if (context.current == context.source.length) {
     return createError(context,"anyChar","line end of")
@@ -100,6 +109,7 @@ function anyChar(context) {
     }
   }
 }
+// Char -> Parsec Char
 let char = c => ctx => {
   let anyVal = anyChar(ctx)
   if(anyVal.type === 'error'){
@@ -113,6 +123,7 @@ let char = c => ctx => {
     }
   }
 }
+// String -> Parsec String
 let string = str => ctx => {
   let actual = ""
   let actx = ctx
@@ -132,8 +143,12 @@ let string = str => ctx => {
   }
   return [actual,actx]
 }
+
+// Parsec ctx
 let getContext = ctx => [ctx,ctx] 
+// ctx -> Parsec ctx
 let setContext = ctx = _ => [null, ctx]
+// Parsec a -> [Parsec a]
 let many = parser => ctx => {
   let runY = withContext(ctx)
   let rs = []
@@ -148,8 +163,8 @@ let many = parser => ctx => {
     }
   }
   return [rs,rctx]
-
 }
+// Parsec a -> [Parsec a]
 function* many1(parser){
   let rs = yield many(parser)
   if(rs.length == 0){
@@ -157,4 +172,61 @@ function* many1(parser){
   } else {
     return rs
   }
+}
+// [Parsec a] -> Parsec a
+let anys = ps => ctx => {
+  // todo 暂不做预期的提示
+  if(ps.length == 0){
+    return createError(ctx,'<anys todo>','<todo>')
+  } else {
+    let [p,...restp] = ps
+    let runY = withContext(ctx)
+    let pr = runY(p)
+    if(pr.type === 'error'){
+      return anys(restp)(ctx)
+    }else{
+      return [pr,runY(getContext)]
+    }
+  }
+}
+
+// Parsec ()
+let spaces = many(anys([char(' '),char('\n'),char('\r'),char('\t')]))
+
+// Parsec a -> Paesec a
+let lookAhead = p => ctx => {
+  let runY = withContext(ctx)
+  let pr = runY(p)
+  if(pr.type === 'error'){
+    return pr
+  }else{
+    return [pr,ctx]
+  }
+}
+
+// Parsec a -> Parsec b -> [Parsec a]
+let manyTill = p => endp => ctx =>{
+  let nctx = ctx
+  let runY = withContext(ctx)
+  let r = []
+  while(true){
+    let epr = runY(endp)
+    if(epr.type === 'error'){
+      runY = withContext(nctx)
+      let pr = runY(p)
+      if(pr.type === 'error'){
+        return pr
+      }else{
+        nctx = runY(getContext)
+        r.push(pr)
+      }
+    }else{
+      break
+    }
+  }
+  return [r,nctx]
+}
+
+let not = p => ctx => {
+
 }

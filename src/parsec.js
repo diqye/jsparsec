@@ -191,7 +191,9 @@ let anys = ps => ctx => {
 }
 
 // Parsec ()
-let spaces = many(anys([char(' '),char('\n'),char('\r'),char('\t')]))
+let space = anys([char(' '),char('\n'),char('\r'),char('\t')])
+// Parsec ()
+let spaces = many(space)
 
 // Parsec a -> Paesec a
 let lookAhead = p => ctx => {
@@ -205,7 +207,12 @@ let lookAhead = p => ctx => {
 }
 
 // Parsec a -> Parsec b -> [Parsec a]
-let manyTill = p => endp => ctx =>{
+let manyTill = (p,p2) => endp => ctx =>{
+  if(p2){
+    throw '正确的使用方式: manyTill(p1)(p2) 请不要使用 manyTill(p1,p2)'
+  }else{
+    void null
+  }
   let nctx = ctx
   let runY = withContext(ctx)
   let r = []
@@ -227,6 +234,17 @@ let manyTill = p => endp => ctx =>{
   return [r,nctx]
 }
 
-let not = p => ctx => {
-
+// Parsec a -> Parsec ()
+let notFollowedBy = p => ctx => {
+  let runY = withContext(ctx)
+  let pr = runY(p)
+  if(pr.type === 'error'){
+    return [null,ctx]
+  }else{
+    return createError(ctx,'notFollowedBy','pass')
+  }
 }
+
+// Parsec ()
+let eof = notFollowedBy(anyChar)
+

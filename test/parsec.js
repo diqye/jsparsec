@@ -101,6 +101,22 @@ let testspecObj = {
     }
     let r = parse(mt,'ni hao end')
     console.assert(r==='ni hao')
+  },
+  "<notFollowedBy> <eof>" () {
+    let r = parse(eof,'')
+    console.assert(r===null)
+    function* parser(){
+      yield string('let')
+      yield many1(char(' '))
+      yield notFollowedBy(string('aa'))
+      let name = yield manyTill(anyChar)(space)
+      return name.join('')
+    }
+    let r1 = parse(parser,'let bbaa = 2')
+    console.assert(r1 == 'bbaa')
+    let r2 = parse(parser,'let aa = 2')
+    console.assert(r2.type === 'error')
+
   }
 }
 function test() {

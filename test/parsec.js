@@ -116,7 +116,22 @@ let testspecObj = {
     console.assert(r1 == 'bbaa')
     let r2 = parse(parser,'let aa = 2')
     console.assert(r2.type === 'error')
-
+  },
+  "<stepBy> <stepBy1> <final>" () {
+    function* parser(){
+      let r =  yield stepBy1(anyChar)(char(','))
+      return r.join('')
+    }
+    let r = parse(parser,'a,b,c,d')
+    console.assert(r==='abcd')
+    let r1 = parse(anys([parser,final('hello')]),'')
+    console.assert(r1==='hello')
+    function* parser1(){
+      let r =  yield stepBy(anyChar)(char(','))
+      return r.join('')
+    }
+    let r2 = parse(parser1,'')
+    console.assert(r2==='')
   }
 }
 function test() {

@@ -248,3 +248,16 @@ let notFollowedBy = p => ctx => {
 // Parsec ()
 let eof = notFollowedBy(anyChar)
 
+// Parsec p -> Parsec sep -> Parsec [p]
+let stepBy1 = p => sep => function* () {
+  let x = yield p
+  let xs = yield many(function* (){
+    yield sep
+    return yield p
+  })
+  return [x].concat(xs)
+}
+// a -> Parsec a
+let final = a => ctx => [a,ctx]
+// Parsec p -> Parsec sep -> Parsec [p]
+let stepBy = p => sep => anys([stepBy1(p)(sep),final([])])

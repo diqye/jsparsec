@@ -1,4 +1,4 @@
-# JS Parsec  先占个位置, 完成度(80%)
+# JS Parsec  代码完成度(90%), 文档完成度(0%)
 
 解析CSS的例子
 ```javascript
